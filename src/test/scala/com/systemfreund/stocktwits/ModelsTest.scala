@@ -12,7 +12,19 @@ class ModelsTest extends FunSuite {
     assert(source.status == 200)
   }
 
-  test("'stream' to response") {
+  test("map errors to 'Error'") {
+    val err = """{ "message": "err1"}""".parseJson.convertTo[Error]
+    assert(err.message == "err1")
+  }
+
+  test("map error response to 'ErrorResponse'") {
+    val resp = """{ "response": {"status": 404}, "errors": [{"message": "err1"}] }""".parseJson.convertTo[ErrorResponse]
+    assert(resp.response.status == 404)
+    assert(resp.errors.get.size == 1)
+    assert(resp.errors.get(0).message == "err1")
+  }
+
+  test("map stream to 'StreamResponse'") {
     val source = """
       {
         "response": { "status": 200 },
@@ -41,7 +53,7 @@ class ModelsTest extends FunSuite {
       }""".parseJson.convertTo[StreamResponse]
 
     assert(source.symbol.id == 17)
-    assert(source.symbol.symbol == "JOY")
+    assert(source.symbol.ticker == "JOY")
     assert(source.symbol.title == "Joy Global, Inc.")
     assert(source.cursor.more == true)
     assert(source.cursor.since == 49)
