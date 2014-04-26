@@ -8,10 +8,11 @@ import scala.util.{Success, Failure}
 
 class IntegrationTest extends FunSuite {
 
-  val system = ActorSystem()
+  implicit val system = ActorSystem()
+  import system.dispatcher
 
   test("get 'streams/symbol'") {
-    val streams = new Streams(system)
+    val streams = Streams()
     val future = streams.symbol("GOOG")
     val result = Await.result(future, 5 seconds)
 
@@ -22,7 +23,7 @@ class IntegrationTest extends FunSuite {
   }
 
   test("unknown 'streams/symbol'") {
-    val streams = new Streams(system)
+    val streams = Streams()
     val future = streams.symbol("GOOGOO")
     val result = Await.result(future, 5 seconds)
 

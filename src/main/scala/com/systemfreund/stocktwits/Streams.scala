@@ -4,7 +4,7 @@ import spray.client.pipelining._
 import spray.httpx.encoding.{Deflate, Gzip}
 import spray.http.HttpRequest
 import spray.http.HttpResponse
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import spray.http.StatusCodes._
 import akka.actor.ActorRefFactory
 import scala.concurrent.duration._
@@ -15,13 +15,13 @@ import spray.httpx.SprayJsonSupport._
 import spray.httpx.UnsuccessfulResponseException
 import spray.httpx.unmarshalling.PimpedHttpResponse
 
-class Streams(val actorSystem: ActorRefFactory) {
+class Streams private(val sendRecv: HttpRequest => Future[HttpResponse], val dispatcher: ExecutionContext) {
 
-  import actorSystem.dispatcher
+  implicit val _dispatcher = dispatcher
 
   private val pipeline: HttpRequest => Future[StreamResponse] =
     (encode(Gzip)
-      ~> sendReceive(actorSystem, actorSystem.dispatcher, 5 seconds)
+      ~> sendRecv
       ~> decode(Deflate)
       ~> unmarshal[StreamResponse])
 
@@ -30,8 +30,16 @@ class Streams(val actorSystem: ActorRefFactory) {
     case Right(response) => response
   }
 
-  def symbol(id: String): Future[Try[StreamResponse]] = pipeline(Get(symbolUriOf(id)))
+  def symbol(id: String, since: Option[Int] = None): Future[Try[StreamResponse]] = pipeline(Get(symbolUriOf(id).since(since)))
     .map(t => Success(t))
-    .recover { case e: UnsuccessfulResponseException => Failure(new ApiError(unmarshalErrorResponse(e.response))) }
+    .recover {
+    case e: UnsuccessfulResponseException => Failure(new ApiError(unmarshalErrorResponse(e.response)))
+  }
 
+}
+
+object Streams {
+  def apply()(implicit actorSys: ActorRefFactory, dispatcher: ExecutionContext) = new Streams(sendReceive, dispatcher)
+
+  def apply(sendRecv: HttpRequest => Future[HttpResponse])(implicit dispatcher: ExecutionContext) = new Streams(sendRecv, dispatcher)
 }
