@@ -15,9 +15,7 @@ import spray.httpx.SprayJsonSupport._
 import spray.httpx.UnsuccessfulResponseException
 import spray.httpx.unmarshalling.PimpedHttpResponse
 
-class Streams private(val sendRecv: HttpRequest => Future[HttpResponse], val dispatcher: ExecutionContext) {
-
-  implicit val _dispatcher = dispatcher
+class Streams private(val sendRecv: HttpRequest => Future[HttpResponse])(implicit val dispatcher: ExecutionContext) {
 
   private val pipeline: HttpRequest => Future[StreamResponse] =
     (encode(Gzip)
@@ -33,13 +31,13 @@ class Streams private(val sendRecv: HttpRequest => Future[HttpResponse], val dis
   def symbol(id: String, since: Option[Int] = None): Future[Try[StreamResponse]] = pipeline(Get(symbolUriOf(id).since(since)))
     .map(t => Success(t))
     .recover {
-    case e: UnsuccessfulResponseException => Failure(new ApiError(unmarshalErrorResponse(e.response)))
-  }
+      case e: UnsuccessfulResponseException => Failure(new ApiError(unmarshalErrorResponse(e.response)))
+    }
 
 }
 
 object Streams {
-  def apply()(implicit actorSys: ActorRefFactory, dispatcher: ExecutionContext) = new Streams(sendReceive, dispatcher)
+  def apply()(implicit actorSys: ActorRefFactory, dispatcher: ExecutionContext) = new Streams(sendReceive)
 
-  def apply(sendRecv: HttpRequest => Future[HttpResponse])(implicit dispatcher: ExecutionContext) = new Streams(sendRecv, dispatcher)
+  def apply(sendRecv: HttpRequest => Future[HttpResponse])(implicit dispatcher: ExecutionContext) = new Streams(sendRecv)
 }
