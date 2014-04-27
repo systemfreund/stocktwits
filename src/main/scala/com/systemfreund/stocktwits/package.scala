@@ -5,7 +5,7 @@ import com.systemfreund.stocktwits.Models.ErrorResponse
 
 package object stocktwits {
 
-  class ApiError(val response: ErrorResponse) extends RuntimeException
+  case class ApiError(val response: ErrorResponse) extends RuntimeException
 
   val baseUri = Uri("https://api.stocktwits.com/api/2")
 

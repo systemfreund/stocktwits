@@ -16,21 +16,18 @@ class IntegrationTest extends FunSuite {
     val future = streams.symbol("GOOG")
     val result = Await.result(future, 5 seconds)
 
-    result match {
-      case Failure(exception) => fail("Unexpected failure", exception)
-      case Success(value) => assert(value.symbol.ticker == "GOOG")
-    }
+    assert(result.symbol.ticker == "GOOG")
   }
 
   test("unknown 'streams/symbol'") {
     val streams = Streams()
     val future = streams.symbol("GOOGOO")
-    val result = Await.result(future, 5 seconds)
 
-    result match {
-      case Failure(e: ApiError) => assert(e.response.response.status == 404)
-      case Success(value) => fail("Unexpected success")
-      case _ => fail("Unexpected case")
+    try {
+      Await.result(future, 5 seconds)
+    } catch {
+      case ApiError(err) => assert(err.response.status == 404)
+      case e: Throwable => fail("Unexpected exception", e)
     }
   }
 

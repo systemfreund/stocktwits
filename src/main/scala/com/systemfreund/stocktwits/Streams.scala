@@ -17,22 +17,19 @@ import spray.httpx.unmarshalling.PimpedHttpResponse
 
 class Streams private(val sendRecv: HttpRequest => Future[HttpResponse])(implicit val dispatcher: ExecutionContext) {
 
-  private val pipeline: HttpRequest => Future[StreamResponse] =
-    (encode(Gzip)
-      ~> sendRecv
-      ~> decode(Deflate)
-      ~> unmarshal[StreamResponse])
+  private val pipeline = (encode(Gzip)
+    ~> sendRecv
+    ~> decode(Deflate)
+    ~> unmarshal[StreamResponse])
 
   private def unmarshalErrorResponse(response: HttpResponse): ErrorResponse = response.as[ErrorResponse] match {
     case Left(error) => throw new RuntimeException(error.toString)
     case Right(response) => response
   }
 
-  def symbol(id: String, since: Option[Int] = None): Future[Try[StreamResponse]] = pipeline(Get(symbolUriOf(id).since(since)))
-    .map(t => Success(t))
-    .recover {
-      case e: UnsuccessfulResponseException => Failure(new ApiError(unmarshalErrorResponse(e.response)))
-    }
+  def symbol(id: String, since: Option[Int] = None): Future[StreamResponse] = pipeline(Get(symbolUriOf(id).since(since))) recover {
+    case e: UnsuccessfulResponseException => throw ApiError(unmarshalErrorResponse(e.response))
+  }
 
 }
 
