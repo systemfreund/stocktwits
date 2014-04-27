@@ -8,7 +8,7 @@ object Models {
   type Symbols = Seq[Symbol]
 
   case class ErrorResponse(response: Response,
-                           errors: Option[Seq[Error]])
+                           errors: Seq[Error])
 
   case class Response(status: Int)
 

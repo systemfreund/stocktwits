@@ -20,8 +20,8 @@ class ModelsTest extends FunSuite {
   test("map error response to 'ErrorResponse'") {
     val resp = """{ "response": {"status": 404}, "errors": [{"message": "err1"}] }""".parseJson.convertTo[ErrorResponse]
     assert(resp.response.status == 404)
-    assert(resp.errors.get.size == 1)
-    assert(resp.errors.get(0).message == "err1")
+    assert(resp.errors.size == 1)
+    assert(resp.errors(0).message == "err1")
   }
 
   test("map stream to 'StreamResponse'") {
