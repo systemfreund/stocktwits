@@ -5,6 +5,7 @@ import akka.actor.ActorSystem
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.{Success, Failure}
+import scala.language.postfixOps
 
 class IntegrationTest extends FunSuite {
 

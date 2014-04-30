@@ -8,6 +8,7 @@ import spray.http.HttpResponse
 import akka.actor.ActorSystem
 import scala.concurrent.duration._
 import spray.httpx.PipelineException
+import scala.language.postfixOps
 
 class StreamsTest extends FunSuite {
 
