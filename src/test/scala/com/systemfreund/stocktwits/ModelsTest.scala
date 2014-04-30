@@ -57,7 +57,23 @@ class ModelsTest extends FunSuite {
     assert(source.symbol.title == "Joy Global, Inc.")
     assert(source.cursor.more == true)
     assert(source.cursor.since == 49)
-    assert(source.cursor.max == 51)
+    assert(source.cursor.max == Some(51))
+  }
+
+  test("map cursor to 'Cursor'") {
+    val cursor = """{"more":false,"since":1,"max":10}""".parseJson.convertTo[Cursor]
+
+    assert(cursor.more == false)
+    assert(cursor.since == 1)
+    assert(cursor.max == Some(10))
+  }
+
+  test("map cursor without max to 'Cursor'") {
+    val cursor = """{"more":false,"since":1,"max":null}""".parseJson.convertTo[Cursor]
+
+    assert(cursor.more == false)
+    assert(cursor.since == 1)
+    assert(cursor.max == None)
   }
 
 }

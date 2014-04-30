@@ -4,7 +4,6 @@ import spray.json.DefaultJsonProtocol
 
 object Models {
 
-  type Messages = Seq[Message]
   type Symbols = Seq[Symbol]
 
   case class ErrorResponse(response: Response,
@@ -16,11 +15,11 @@ object Models {
 
   case class StreamResponse(cursor: Cursor,
                             symbol: Symbol,
-                            messages: Messages)
+                            messages: Seq[Message])
 
   case class Cursor(more: Boolean,
                     since: Int,
-                    max: Int)
+                    max: Option[Int])
 
   case class Symbol(id: Int,
                     ticker: String,
