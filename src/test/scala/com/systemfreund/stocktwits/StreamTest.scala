@@ -5,7 +5,6 @@ import spray.http._
 import scala.concurrent.{Await, Future}
 import spray.http.HttpRequest
 import spray.http.HttpResponse
-import akka.actor.ActorSystem
 import scala.concurrent.duration._
 import spray.httpx.PipelineException
 import scala.language.postfixOps
@@ -22,7 +21,7 @@ class StreamTest extends FunSuite {
   }
 
   test("fail on empty response") {
-    val stream = Stream[SymbolStreamResponse](Symbol("TEST"), withResponse(""))
+    val stream = Stream(Symbol("TEST"), withResponse(""))
     val future = stream(None)
 
     intercept[PipelineException] {
@@ -31,7 +30,7 @@ class StreamTest extends FunSuite {
   }
 
   test("fail on empty object") {
-    val stream = Stream[SymbolStreamResponse](Symbol("TEST"), withResponse("{}"))
+    val stream = Stream(Symbol("TEST"), withResponse("{}"))
     val future = stream(None)
 
     intercept[PipelineException] {
@@ -40,7 +39,7 @@ class StreamTest extends FunSuite {
   }
 
   test("expect api error 404") {
-    val stream = Stream[SymbolStreamResponse](Symbol("TEST"), withResponse( """{ "response": {"status": 404}, "errors": [{"message": "notfound"}] }""", StatusCodes.NotFound))
+    val stream = Stream(Symbol("TEST"), withResponse( """{ "response": {"status": 404}, "errors": [{"message": "notfound"}] }""", StatusCodes.NotFound))
     val future = stream(None)
 
     try {
@@ -55,7 +54,7 @@ class StreamTest extends FunSuite {
   }
 
   test("expect RuntimeException when unmarshalling error response fails ") {
-    val stream = Stream[SymbolStreamResponse](Symbol("TEST"), withResponse( """{ "response": {"status": 404} }""", StatusCodes.NotFound))
+    val stream = Stream(Symbol("TEST"), withResponse( """{ "response": {"status": 404} }""", StatusCodes.NotFound))
     val future = stream(None)
 
     try {

@@ -7,7 +7,6 @@ import scala.concurrent.duration._
 import scala.language.postfixOps
 import spray.httpx.SprayJsonSupport._
 import Models.JsonProtocol._
-import com.systemfreund.stocktwits.Models.{UserStreamResponse, SymbolStreamResponse}
 
 class IntegrationTest extends FunSuite with Matchers {
 
@@ -16,7 +15,7 @@ class IntegrationTest extends FunSuite with Matchers {
   import system.dispatcher
 
   test("get 'streams/symbol'") {
-    val stream = Stream[SymbolStreamResponse](Symbol("GOOG"))
+    val stream = Stream(Symbol("GOOG"))
     val future = stream(None)
     val result = Await.result(future, 5 seconds)
 
@@ -24,7 +23,7 @@ class IntegrationTest extends FunSuite with Matchers {
   }
 
   test("unknown 'streams/symbol'") {
-    val stream = Stream[SymbolStreamResponse](Symbol("GOOG"))
+    val stream = Stream(Symbol("GOOG"))
     val future = stream(None)
 
     try {
@@ -36,7 +35,7 @@ class IntegrationTest extends FunSuite with Matchers {
   }
 
   test("get 'streams/user'") {
-    val stream = Stream[UserStreamResponse](User("dschn"))
+    val stream = Stream(User("dschn"))
     val future = stream(None)
     val result = Await.result(future, 5 seconds)
 
