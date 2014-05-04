@@ -11,13 +11,18 @@ object Models {
 
   case class Error(message: String)
 
-  case class SymbolStreamResponse(cursor: Cursor,
-                            symbol: Symbol,
-                            messages: Seq[Message])
+  sealed trait StreamResponse {
+    val cursor: Cursor
+    val messages: Seq[Message]
+  }
 
-  case class UserStreamResponse(cursor: Cursor,
-                            user: User,
-                            messages: Seq[Message])
+  case class SymbolStreamResponse(symbol: Symbol,
+                                  cursor: Cursor,
+                                  messages: Seq[Message]) extends StreamResponse
+
+  case class UserStreamResponse(user: User,
+                                cursor: Cursor,
+                                messages: Seq[Message]) extends StreamResponse
 
   case class Cursor(more: Boolean,
                     since: Int,
