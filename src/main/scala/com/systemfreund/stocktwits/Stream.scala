@@ -13,25 +13,25 @@ import spray.httpx.UnsuccessfulResponseException
 import spray.httpx.unmarshalling.{FromResponseUnmarshaller, PimpedHttpResponse}
 import spray.http.Uri
 
-class Stream[A <: StreamResponse : FromResponseUnmarshaller] private(val entity: StreamEntity[A],
+private class Stream[A <: StreamResponse : FromResponseUnmarshaller] private(val entity: StreamEntity[A],
                                                                      val sendRecv: HttpRequest => Future[HttpResponse])
                                                                     (implicit val dispatcher: ExecutionContext) {
 
-  private val pipeline: HttpRequest => Future[A] = (encode(Gzip)
+  val pipeline: HttpRequest => Future[A] = (encode(Gzip)
     ~> sendRecv
     ~> decode(Deflate)
     ~> unmarshal[A])
 
-  private def unmarshalErrorResponse(response: HttpResponse): ErrorResponse = response.as[ErrorResponse] match {
+  def unmarshalErrorResponse(response: HttpResponse): ErrorResponse = response.as[ErrorResponse] match {
     case Left(error) => throw new RuntimeException(error.toString)
     case Right(errorResp) => errorResp
   }
 
-  private def get(uri: Uri)(since: Option[Int] = None): Future[A] = pipeline(Get(uri.since(since))) recover {
+  def get(uri: Uri)(since: Option[Int] = None): Future[A] = pipeline(Get(uri.since(since))) recover {
     case e: UnsuccessfulResponseException => throw ApiError(unmarshalErrorResponse(e.response))
   }
 
-  private def get: Option[Int] => Future[A] = entity match {
+  def get: Option[Int] => Future[A] = entity match {
     case entity: StreamEntity[A] => get(entity.uri)
   }
 
