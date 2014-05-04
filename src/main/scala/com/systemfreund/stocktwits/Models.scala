@@ -4,8 +4,6 @@ import spray.json.DefaultJsonProtocol
 
 object Models {
 
-  type Symbols = Seq[Symbol]
-
   case class ErrorResponse(response: Response,
                            errors: Seq[Error])
 
@@ -46,7 +44,7 @@ object Models {
                      createdAt: String,
                      user: User,
                      source: Source,
-                     symbols: Symbols)
+                     symbols: Seq[Symbol])
 
   object JsonProtocol extends DefaultJsonProtocol {
     implicit val errorFormat = jsonFormat1(Error)
@@ -57,8 +55,8 @@ object Models {
     implicit val userFormat = jsonFormat(User, "id", "username", "name", "avatar_url", "avatar_url_ssl", "identity", "classification")
     implicit val sourceFormat = jsonFormat3(Source)
     implicit val messageFormat = jsonFormat(Message, "id", "body", "created_at", "user", "source", "symbols")
-    implicit val streamResponseFormat = jsonFormat3(SymbolStreamResponse)
-    implicit val userResponseFormat = jsonFormat3(UserStreamResponse)
+    implicit val symbolStreamResponseFormat = jsonFormat3(SymbolStreamResponse)
+    implicit val userStreamResponseFormat = jsonFormat3(UserStreamResponse)
   }
 
 }
