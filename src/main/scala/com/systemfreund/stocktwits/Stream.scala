@@ -41,13 +41,14 @@ class Stream[A <: StreamResponse] private(val entity: StreamEntity[A],
 object Stream {
   type StreamFunc[A <: StreamResponse] = Option[Int] => Future[A]
 
-  def apply[A <: StreamResponse](entity: StreamEntity[A])
-                                (implicit actorSys: ActorRefFactory,
-                                 dispatcher: ExecutionContext,
-                                 contextBounds: FromResponseUnmarshaller[A]): StreamFunc[A] = apply(entity, sendReceive)
+  // Reminder:
+  // A : FromResponseUnmarshaller maps to (implicit evidence: FromResponseUnmarshaller[A])
 
-  def apply[A <: StreamResponse](entity: StreamEntity[A],
+  def apply[A <: StreamResponse : FromResponseUnmarshaller](entity: StreamEntity[A])
+                                (implicit actorSys: ActorRefFactory,
+                                 dispatcher: ExecutionContext): StreamFunc[A] = apply(entity, sendReceive)
+
+  def apply[A <: StreamResponse : FromResponseUnmarshaller](entity: StreamEntity[A],
                                  sendRecv: HttpRequest => Future[HttpResponse])
-                                (implicit dispatcher: ExecutionContext,
-                                 contextBounds: FromResponseUnmarshaller[A]): StreamFunc[A] = new Stream[A](entity, sendRecv).get
+                                (implicit dispatcher: ExecutionContext): StreamFunc[A] = new Stream[A](entity, sendRecv).get
 }
