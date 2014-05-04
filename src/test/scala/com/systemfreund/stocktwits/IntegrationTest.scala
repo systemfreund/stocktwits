@@ -42,4 +42,16 @@ class IntegrationTest extends FunSuite with Matchers {
     result.user.username shouldEqual "dschn"
   }
 
+  test("unknown 'streams/user'") {
+    val stream = Stream(User("-1"))
+    val future = stream(None)
+
+    try {
+      Await.result(future, 5 seconds)
+    } catch {
+      case ApiError(err) => assert(err.response.status == 404)
+      case e: Throwable => fail("Unexpected exception", e)
+    }
+  }
+
 }
