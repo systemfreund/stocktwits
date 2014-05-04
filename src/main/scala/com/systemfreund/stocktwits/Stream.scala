@@ -13,7 +13,7 @@ import spray.httpx.UnsuccessfulResponseException
 import spray.httpx.unmarshalling.{FromResponseUnmarshaller, PimpedHttpResponse}
 import spray.http.Uri
 
-class Stream[A <: StreamResponse] private(val entity: StreamEntity,
+class Stream[A <: StreamResponse] private(val entity: StreamEntity[A],
                                           val sendRecv: HttpRequest => Future[HttpResponse])
                                          (implicit val dispatcher: ExecutionContext,
                                           contextBounds: FromResponseUnmarshaller[A]) {
@@ -33,7 +33,7 @@ class Stream[A <: StreamResponse] private(val entity: StreamEntity,
   }
 
   private def get: Option[Int] => Future[A] = entity match {
-    case entity: StreamEntity => get(entity.uri)
+    case entity: StreamEntity[A] => get(entity.uri)
   }
 
 }
@@ -41,12 +41,12 @@ class Stream[A <: StreamResponse] private(val entity: StreamEntity,
 object Stream {
   type StreamFunc[A <: StreamResponse] = Option[Int] => Future[A]
 
-  def apply[A <: StreamResponse](entity: StreamEntity)
+  def apply[A <: StreamResponse](entity: StreamEntity[A])
                                 (implicit actorSys: ActorRefFactory,
                                  dispatcher: ExecutionContext,
                                  contextBounds: FromResponseUnmarshaller[A]): StreamFunc[A] = apply(entity, sendReceive)
 
-  def apply[A <: StreamResponse](entity: StreamEntity,
+  def apply[A <: StreamResponse](entity: StreamEntity[A],
                                  sendRecv: HttpRequest => Future[HttpResponse])
                                 (implicit dispatcher: ExecutionContext,
                                  contextBounds: FromResponseUnmarshaller[A]): StreamFunc[A] = new Stream[A](entity, sendRecv).get

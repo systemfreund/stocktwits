@@ -3,7 +3,7 @@ package com.systemfreund
 import spray.http.Uri
 import spray.http.Uri.Path
 import spray.http.Uri.Path._
-import com.systemfreund.stocktwits.Models.ErrorResponse
+import com.systemfreund.stocktwits.Models.{UserStreamResponse, SymbolStreamResponse, StreamResponse, ErrorResponse}
 
 package object stocktwits {
 
@@ -18,13 +18,18 @@ package object stocktwits {
   private val basePath = Path("https://api.stocktwits.com/api/2")
   private val streamsBasePath = basePath / "streams" ++ /
 
-  sealed class StreamEntity(private val path: Path = Empty) {
+  /**
+   * Type parameter is needed in order to avoid having to call [[com.systemfreund.stocktwits.Stream]] like this:
+   * {{{Stream[SymbolStreamResponse](Symbol("GOOGL"))}}}
+   * Instead, we can write {{{Stream(Symbol("GOOGL")}}} because the compiler can now infer the type parameter.
+   */
+  sealed class StreamEntity[A](private val path: Path = Empty) {
     private[stocktwits] lazy val uri = Uri((streamsBasePath ++ path + ".json").toString())
   }
 
-  case class Symbol(id: String) extends StreamEntity(Path("symbol") / id)
+  case class Symbol(id: String) extends StreamEntity[SymbolStreamResponse](Path("symbol") / id)
 
-  case class User(id: String) extends StreamEntity(Path("user") / id)
+  case class User(id: String) extends StreamEntity[UserStreamResponse](Path("user") / id)
 
   implicit class Queries(val uri: Uri) {
     def toUri(opt: Option[Int], f: Int => Uri) = opt.fold(uri)(f)
