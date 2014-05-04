@@ -14,8 +14,9 @@ import com.systemfreund.stocktwits.Models.JsonProtocol._
 import spray.httpx.SprayJsonSupport._
 import spray.httpx.UnsuccessfulResponseException
 import spray.httpx.unmarshalling.PimpedHttpResponse
+import spray.http.Uri
 
-class Streams private(val sendRecv: HttpRequest => Future[HttpResponse])(implicit val dispatcher: ExecutionContext) {
+class Stream private(val sendRecv: HttpRequest => Future[HttpResponse], val entity: StreamEntity)(implicit val dispatcher: ExecutionContext) {
 
   private val pipeline = (encode(Gzip)
     ~> sendRecv
@@ -27,14 +28,20 @@ class Streams private(val sendRecv: HttpRequest => Future[HttpResponse])(implici
     case Right(response) => response
   }
 
-  def symbol(id: String, since: Option[Int] = None): Future[StreamResponse] = pipeline(Get(symbolUriOf(id).since(since))) recover {
+  private def get(uri: Uri)(since: Option[Int] = None): Future[StreamResponse] = pipeline(Get(uri.since(since))) recover {
     case e: UnsuccessfulResponseException => throw ApiError(unmarshalErrorResponse(e.response))
+  }
+
+  private def get: Option[Int] => Future[StreamResponse] = entity match {
+    case entity: StreamEntity => get(entity.uri) _
   }
 
 }
 
-object Streams {
-  def apply()(implicit actorSys: ActorRefFactory, dispatcher: ExecutionContext) = new Streams(sendReceive)
+object Stream {
+  type StreamFunc = Option[Int] => Future[StreamResponse]
 
-  def apply(sendRecv: HttpRequest => Future[HttpResponse])(implicit dispatcher: ExecutionContext) = new Streams(sendRecv)
+  def apply(entity: StreamEntity)(implicit actorSys: ActorRefFactory, dispatcher: ExecutionContext): StreamFunc = apply(entity, sendReceive)
+
+  def apply(entity: StreamEntity, sendRecv: HttpRequest => Future[HttpResponse])(implicit dispatcher: ExecutionContext): StreamFunc = new Stream(sendRecv, entity).get
 }

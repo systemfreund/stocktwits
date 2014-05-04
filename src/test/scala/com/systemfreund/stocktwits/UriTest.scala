@@ -5,9 +5,12 @@ import spray.http.Uri
 
 class UriTest extends FunSuite with Matchers {
 
-  test("streams/symbol uri") {
-    val uri = symbolUriOf("AAPL")
-    uri shouldEqual Uri("https://api.stocktwits.com/api/2/streams/symbol/AAPL.json")
+  test("Symbol endpoint uri is correct") {
+    Symbol("GOOG").uri shouldEqual(Uri("https://api.stocktwits.com/api/2/streams/symbol/GOOG.json"))
+  }
+
+  test("User endpoint uri is correct") {
+    User("traderjoe").uri shouldEqual(Uri("https://api.stocktwits.com/api/2/streams/user/traderjoe.json"))
   }
 
   test("uri with 'since'") {

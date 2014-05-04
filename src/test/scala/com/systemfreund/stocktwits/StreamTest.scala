@@ -10,18 +10,17 @@ import scala.concurrent.duration._
 import spray.httpx.PipelineException
 import scala.language.postfixOps
 
-class StreamsTest extends FunSuite {
+class StreamTest extends FunSuite {
 
-  implicit val system = ActorSystem()
-
-  import system.dispatcher
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   def withResponse(data: String, status: StatusCode = StatusCodes.OK): HttpRequest => Future[HttpResponse] = {
     request => Future.successful(HttpResponse(status, HttpEntity(ContentTypes.`application/json`, data)))
   }
 
   test("fail on empty response") {
-    val future = Streams(withResponse("")).symbol("TEST")
+    val stream = Stream(Symbol("TEST"), withResponse(""))
+    val future = stream(None)
 
     intercept[PipelineException] {
       Await.result(future, 5 seconds)
@@ -29,7 +28,8 @@ class StreamsTest extends FunSuite {
   }
 
   test("fail on empty object") {
-    val future = Streams(withResponse("{}")).symbol("TEST")
+    val stream = Stream(Symbol("TEST"), withResponse("{}"))
+    val future = stream(None)
 
     intercept[PipelineException] {
       Await.result(future, 5 seconds)
@@ -37,7 +37,8 @@ class StreamsTest extends FunSuite {
   }
 
   test("expect api error 404") {
-    val future = Streams(withResponse( """{ "response": {"status": 404}, "errors": [{"message": "notfound"}] }""", StatusCodes.NotFound)).symbol("TEST")
+    val stream = Stream(Symbol("TEST"), withResponse( """{ "response": {"status": 404}, "errors": [{"message": "notfound"}] }""", StatusCodes.NotFound))
+    val future = stream(None)
 
     try {
       Await.result(future, 5 seconds)
@@ -45,13 +46,14 @@ class StreamsTest extends FunSuite {
       case ApiError(resp) => {
         assert(resp.response.status == 404)
         assert(resp.errors.size == 1)
-        assert(resp.errors(0).message  == "notfound")
+        assert(resp.errors(0).message == "notfound")
       }
     }
   }
 
   test("expect RuntimeException when unmarshalling error response fails ") {
-    val future = Streams(withResponse( """{ "response": {"status": 404} }""", StatusCodes.NotFound)).symbol("TEST")
+    val stream = Stream(Symbol("TEST"), withResponse( """{ "response": {"status": 404} }""", StatusCodes.NotFound))
+    val future = stream(None)
 
     try {
       Await.result(future, 5 seconds)
