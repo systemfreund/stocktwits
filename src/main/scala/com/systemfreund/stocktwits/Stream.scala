@@ -13,10 +13,9 @@ import spray.httpx.UnsuccessfulResponseException
 import spray.httpx.unmarshalling.{FromResponseUnmarshaller, PimpedHttpResponse}
 import spray.http.Uri
 
-class Stream[A <: StreamResponse] private(val entity: StreamEntity[A],
-                                          val sendRecv: HttpRequest => Future[HttpResponse])
-                                         (implicit val dispatcher: ExecutionContext,
-                                          contextBounds: FromResponseUnmarshaller[A]) {
+class Stream[A <: StreamResponse : FromResponseUnmarshaller] private(val entity: StreamEntity[A],
+                                                                     val sendRecv: HttpRequest => Future[HttpResponse])
+                                                                    (implicit val dispatcher: ExecutionContext) {
 
   private val pipeline: HttpRequest => Future[A] = (encode(Gzip)
     ~> sendRecv
@@ -39,7 +38,9 @@ class Stream[A <: StreamResponse] private(val entity: StreamEntity[A],
 }
 
 object Stream {
-  implicit def noArgToNone[A <: StreamResponse](f: StreamFunc[A]): () => Future[A] = { () => f(None) }
+  implicit def noArgToNone[A <: StreamResponse](f: StreamFunc[A]): () => Future[A] = {
+    () => f(None)
+  }
 
   type StreamFunc[A <: StreamResponse] = Option[Int] => Future[A]
 
