@@ -1,7 +1,7 @@
 package com.systemfreund.stocktwits
 
 import rx.lang.scala.{Subject, Observable}
-import com.systemfreund.stocktwits.Models.{StreamResponse, Cursor, Message}
+import com.systemfreund.stocktwits.Models.{SymbolStreamResponse, Cursor, Message}
 import java.util.concurrent.TimeUnit
 import rx.lang.scala.JavaConversions.toScalaObservable
 import grizzled.slf4j.{Logging, Logger}

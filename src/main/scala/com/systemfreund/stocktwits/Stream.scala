@@ -21,25 +21,25 @@ class Stream private(val sendRecv: HttpRequest => Future[HttpResponse], val enti
   private val pipeline = (encode(Gzip)
     ~> sendRecv
     ~> decode(Deflate)
-    ~> unmarshal[StreamResponse])
+    ~> unmarshal[SymbolStreamResponse])
 
   private def unmarshalErrorResponse(response: HttpResponse): ErrorResponse = response.as[ErrorResponse] match {
     case Left(error) => throw new RuntimeException(error.toString)
     case Right(response) => response
   }
 
-  private def get(uri: Uri)(since: Option[Int] = None): Future[StreamResponse] = pipeline(Get(uri.since(since))) recover {
+  private def get(uri: Uri)(since: Option[Int] = None): Future[SymbolStreamResponse] = pipeline(Get(uri.since(since))) recover {
     case e: UnsuccessfulResponseException => throw ApiError(unmarshalErrorResponse(e.response))
   }
 
-  private def get: Option[Int] => Future[StreamResponse] = entity match {
+  private def get: Option[Int] => Future[SymbolStreamResponse] = entity match {
     case entity: StreamEntity => get(entity.uri) _
   }
 
 }
 
 object Stream {
-  type StreamFunc = Option[Int] => Future[StreamResponse]
+  type StreamFunc = Option[Int] => Future[SymbolStreamResponse]
 
   def apply(entity: StreamEntity)(implicit actorSys: ActorRefFactory, dispatcher: ExecutionContext): StreamFunc = apply(entity, sendReceive)
 

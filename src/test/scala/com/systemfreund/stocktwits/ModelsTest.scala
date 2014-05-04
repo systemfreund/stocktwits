@@ -1,11 +1,11 @@
 package com.systemfreund.stocktwits
 
-import org.scalatest.FunSuite
+import org.scalatest.{Matchers, FunSuite}
 import spray.json._
 import com.systemfreund.stocktwits.Models._
 import com.systemfreund.stocktwits.Models.JsonProtocol._
 
-class ModelsTest extends FunSuite {
+class ModelsTest extends FunSuite with Matchers {
 
   test("map json to 'Response'") {
     val source = """{ "status": 200 }""".parseJson.convertTo[Response]
@@ -24,7 +24,23 @@ class ModelsTest extends FunSuite {
     assert(resp.errors(0).message == "err1")
   }
 
-  test("map stream to 'StreamResponse'") {
+  test("map cursor to 'Cursor'") {
+    val cursor = """{"more":false,"since":1,"max":10}""".parseJson.convertTo[Cursor]
+
+    assert(cursor.more == false)
+    assert(cursor.since == 1)
+    assert(cursor.max == Some(10))
+  }
+
+  test("map cursor without max to 'Cursor'") {
+    val cursor = """{"more":false,"since":1,"max":null}""".parseJson.convertTo[Cursor]
+
+    assert(cursor.more == false)
+    assert(cursor.since == 1)
+    assert(cursor.max == None)
+  }
+
+  test("map symbol stream to 'SymbolStreamResponse'") {
     val source = """
       {
         "response": { "status": 200 },
@@ -50,7 +66,7 @@ class ModelsTest extends FunSuite {
           },
           "symbols": [ { "id": 17, "symbol": "JOY", "title": "Joy Global, Inc." } ]
         } ]
-      }""".parseJson.convertTo[StreamResponse]
+      }""".parseJson.convertTo[SymbolStreamResponse]
 
     assert(source.symbol.id == 17)
     assert(source.symbol.ticker == "JOY")
@@ -60,20 +76,6 @@ class ModelsTest extends FunSuite {
     assert(source.cursor.max == Some(51))
   }
 
-  test("map cursor to 'Cursor'") {
-    val cursor = """{"more":false,"since":1,"max":10}""".parseJson.convertTo[Cursor]
-
-    assert(cursor.more == false)
-    assert(cursor.since == 1)
-    assert(cursor.max == Some(10))
-  }
-
-  test("map cursor without max to 'Cursor'") {
-    val cursor = """{"more":false,"since":1,"max":null}""".parseJson.convertTo[Cursor]
-
-    assert(cursor.more == false)
-    assert(cursor.since == 1)
-    assert(cursor.max == None)
   }
 
 }

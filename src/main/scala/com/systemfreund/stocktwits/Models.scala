@@ -13,7 +13,7 @@ object Models {
 
   case class Error(message: String)
 
-  case class StreamResponse(cursor: Cursor,
+  case class SymbolStreamResponse(cursor: Cursor,
                             symbol: Symbol,
                             messages: Seq[Message])
 
@@ -53,7 +53,7 @@ object Models {
     implicit val userFormat = jsonFormat(User, "id", "username", "name", "avatar_url", "avatar_url_ssl", "identity", "classification")
     implicit val sourceFormat = jsonFormat3(Source)
     implicit val messageFormat = jsonFormat(Message, "id", "body", "created_at", "user", "source", "symbols")
-    implicit val streamResponseFormat = jsonFormat3(StreamResponse)
+    implicit val streamResponseFormat = jsonFormat3(SymbolStreamResponse)
   }
 
 }
