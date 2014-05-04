@@ -1,27 +1,30 @@
 package com.systemfreund.stocktwits
 
-import org.scalatest.FunSuite
+import org.scalatest.{Matchers, FunSuite}
 import akka.actor.ActorSystem
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.util.{Success, Failure}
 import scala.language.postfixOps
+import spray.httpx.SprayJsonSupport._
+import Models.JsonProtocol._
+import com.systemfreund.stocktwits.Models.{UserStreamResponse, SymbolStreamResponse}
 
-class IntegrationTest extends FunSuite {
+class IntegrationTest extends FunSuite with Matchers {
 
   implicit val system = ActorSystem()
+
   import system.dispatcher
 
   test("get 'streams/symbol'") {
-    val stream = Stream(Symbol("GOOG"))
+    val stream = Stream[SymbolStreamResponse](Symbol("GOOG"))
     val future = stream(None)
     val result = Await.result(future, 5 seconds)
 
-    assert(result.symbol.ticker == "GOOG")
+    result.symbol.ticker shouldEqual "GOOG"
   }
 
   test("unknown 'streams/symbol'") {
-    val stream = Stream(Symbol("GOOG"))
+    val stream = Stream[SymbolStreamResponse](Symbol("GOOG"))
     val future = stream(None)
 
     try {
@@ -30,6 +33,14 @@ class IntegrationTest extends FunSuite {
       case ApiError(err) => assert(err.response.status == 404)
       case e: Throwable => fail("Unexpected exception", e)
     }
+  }
+
+  test("get 'streams/user'") {
+    val stream = Stream[UserStreamResponse](User("dschn"))
+    val future = stream(None)
+    val result = Await.result(future, 5 seconds)
+
+    result.user.username shouldEqual "dschn"
   }
 
 }

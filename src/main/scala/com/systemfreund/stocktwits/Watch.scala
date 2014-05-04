@@ -1,16 +1,16 @@
 package com.systemfreund.stocktwits
 
 import rx.lang.scala.{Subject, Observable}
-import com.systemfreund.stocktwits.Models.{SymbolStreamResponse, Cursor, Message}
+import com.systemfreund.stocktwits.Models.{StreamResponse, Message}
 import java.util.concurrent.TimeUnit
 import rx.lang.scala.JavaConversions.toScalaObservable
-import grizzled.slf4j.{Logging, Logger}
+import grizzled.slf4j.Logging
 import com.systemfreund.stocktwits.Stream.StreamFunc
 import scala.concurrent.ExecutionContext
 
 object Watch extends Logging {
 
-  def apply(streamFunc: StreamFunc)(implicit dispatcher: ExecutionContext): Observable[Message] = {
+  def apply[A <: StreamResponse](streamFunc: StreamFunc[A])(implicit dispatcher: ExecutionContext): Observable[Message] = {
     val subject = Subject[Message]
     var since: Option[Int] = None
 

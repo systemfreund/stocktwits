@@ -5,43 +5,49 @@ import spray.httpx.encoding.{Deflate, Gzip}
 import spray.http.HttpRequest
 import spray.http.HttpResponse
 import scala.concurrent.{ExecutionContext, Future}
-import spray.http.StatusCodes._
 import akka.actor.ActorRefFactory
-import scala.concurrent.duration._
 import com.systemfreund.stocktwits.Models._
-import scala.util.{Failure, Try, Success}
 import com.systemfreund.stocktwits.Models.JsonProtocol._
 import spray.httpx.SprayJsonSupport._
 import spray.httpx.UnsuccessfulResponseException
-import spray.httpx.unmarshalling.PimpedHttpResponse
+import spray.httpx.unmarshalling.{FromResponseUnmarshaller, PimpedHttpResponse}
 import spray.http.Uri
 
-class Stream private(val sendRecv: HttpRequest => Future[HttpResponse], val entity: StreamEntity)(implicit val dispatcher: ExecutionContext) {
+class Stream[A <: StreamResponse] private(val entity: StreamEntity,
+                                          val sendRecv: HttpRequest => Future[HttpResponse])
+                                         (implicit val dispatcher: ExecutionContext,
+                                          contextBounds: FromResponseUnmarshaller[A]) {
 
-  private val pipeline = (encode(Gzip)
+  private val pipeline: HttpRequest => Future[A] = (encode(Gzip)
     ~> sendRecv
     ~> decode(Deflate)
-    ~> unmarshal[SymbolStreamResponse])
+    ~> unmarshal[A])
 
   private def unmarshalErrorResponse(response: HttpResponse): ErrorResponse = response.as[ErrorResponse] match {
     case Left(error) => throw new RuntimeException(error.toString)
-    case Right(response) => response
+    case Right(errorResp) => errorResp
   }
 
-  private def get(uri: Uri)(since: Option[Int] = None): Future[SymbolStreamResponse] = pipeline(Get(uri.since(since))) recover {
+  private def get(uri: Uri)(since: Option[Int] = None): Future[A] = pipeline(Get(uri.since(since))) recover {
     case e: UnsuccessfulResponseException => throw ApiError(unmarshalErrorResponse(e.response))
   }
 
-  private def get: Option[Int] => Future[SymbolStreamResponse] = entity match {
-    case entity: StreamEntity => get(entity.uri) _
+  private def get: Option[Int] => Future[A] = entity match {
+    case entity: StreamEntity => get(entity.uri)
   }
 
 }
 
 object Stream {
-  type StreamFunc = Option[Int] => Future[SymbolStreamResponse]
+  type StreamFunc[A <: StreamResponse] = Option[Int] => Future[A]
 
-  def apply(entity: StreamEntity)(implicit actorSys: ActorRefFactory, dispatcher: ExecutionContext): StreamFunc = apply(entity, sendReceive)
+  def apply[A <: StreamResponse](entity: StreamEntity)
+                                (implicit actorSys: ActorRefFactory,
+                                 dispatcher: ExecutionContext,
+                                 contextBounds: FromResponseUnmarshaller[A]): StreamFunc[A] = apply(entity, sendReceive)
 
-  def apply(entity: StreamEntity, sendRecv: HttpRequest => Future[HttpResponse])(implicit dispatcher: ExecutionContext): StreamFunc = new Stream(sendRecv, entity).get
+  def apply[A <: StreamResponse](entity: StreamEntity,
+                                 sendRecv: HttpRequest => Future[HttpResponse])
+                                (implicit dispatcher: ExecutionContext,
+                                 contextBounds: FromResponseUnmarshaller[A]): StreamFunc[A] = new Stream[A](entity, sendRecv).get
 }
