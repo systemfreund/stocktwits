@@ -49,7 +49,7 @@ object Models {
                      createdAt: String,
                      user: User,
                      source: Source,
-                     symbols: Seq[Symbol])
+                     symbols: Option[Seq[Symbol]])
 
   object JsonProtocol extends DefaultJsonProtocol {
     implicit val errorFormat = jsonFormat1(Error)
