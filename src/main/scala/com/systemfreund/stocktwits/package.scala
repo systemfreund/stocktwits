@@ -22,12 +22,12 @@ package object stocktwits {
     private[stocktwits] lazy val uri = Uri((streamsBasePath ++ path + ".json").toString())
   }
 
-  case class Symbol(val id: String) extends StreamEntity(Path("symbol") / id)
+  case class Symbol(id: String) extends StreamEntity(Path("symbol") / id)
 
-  case class User(val id: String) extends StreamEntity(Path("user") / id)
+  case class User(id: String) extends StreamEntity(Path("user") / id)
 
   implicit class Queries(val uri: Uri) {
-    def toUri(opt: Option[Int], f: Int => Uri) = opt.fold(uri)(f(_))
+    def toUri(opt: Option[Int], f: Int => Uri) = opt.fold(uri)(f)
 
     def since(id: Int): Uri = uri.withQuery(("since", id.toString))
 
