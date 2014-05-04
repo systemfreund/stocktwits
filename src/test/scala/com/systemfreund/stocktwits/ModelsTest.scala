@@ -41,45 +41,30 @@ class ModelsTest extends FunSuite with Matchers {
   }
 
   test("map symbol stream to 'SymbolStreamResponse'") {
-    val source = """
-      {
-        "response": { "status": 200 },
-        "symbol": { "id": 17, "symbol": "JOY", "title": "Joy Global, Inc." },
-        "cursor": { "more": true, "since": 49, "max": 51 },
-        "messages": [ {
-          "id": 1,
-          "body": "hello",
-          "created_at": "2012-10-08 21:41:38 UTC",
-          "user": {
-            "id": 2,
-            "username": "mcescher",
-            "name": "M.C. Escher",
-            "avatar_url": "http://avatar",
-            "avatar_url_ssl": "https://avatar",
-            "identity": "User",
-            "classification": [ "suggested" ]
-          },
-          "source": {
-            "id": 1,
-            "title": "StockTwits",
-            "url": "http://stocktwits.com"
-          },
-          "symbols": [ { "id": 17, "symbol": "JOY", "title": "Joy Global, Inc." } ]
-        } ]
-      }""".parseJson.convertTo[SymbolStreamResponse]
+    val source = testResponseTemplate("symbol",
+      """{ "id": 1, "symbol": "SYM1", "title": "Symbol 1" }""").convertTo[SymbolStreamResponse]
 
-    assert(source.symbol.id == 17)
-    assert(source.symbol.ticker == "JOY")
-    assert(source.symbol.title == "Joy Global, Inc.")
-    assert(source.cursor.more == true)
-    assert(source.cursor.since == 49)
-    assert(source.cursor.max == Some(51))
+    source.symbol shouldEqual testSymbol1
+    source.cursor shouldEqual testCursor
+    source.messages shouldEqual Seq(testMessage)
   }
 
   test("map user stream to 'UserStreamResponse'") {
-    val source = """
+    val source = testResponseTemplate("user",
+      """{ "id": 17, "username": "traderjoe", "name": "Trader Joe",
+           "avatar_url": "http://avatar", "avatar_url_ssl": "https://avatar",
+           "identity": "User", "classification": ["class1", "class2"] }""").convertTo[UserStreamResponse]
+
+    source.user shouldEqual testUser
+    source.cursor shouldEqual testCursor
+    source.messages shouldEqual Seq(testMessage)
+  }
+
+  def testResponseTemplate(name: String, value: String): JsValue = {
+    s"""
       {
         "response": { "status": 200 },
+        "$name": $value,
         "user": {
           "id": 17,
           "username": "traderjoe",
@@ -95,30 +80,29 @@ class ModelsTest extends FunSuite with Matchers {
           "body": "hello",
           "created_at": "2012-10-08 21:41:38 UTC",
           "user": {
-            "id": 2,
-            "username": "mcescher",
-            "name": "M.C. Escher",
+            "id": 17,
+            "username": "traderjoe",
+            "name": "Trader Joe",
             "avatar_url": "http://avatar",
             "avatar_url_ssl": "https://avatar",
             "identity": "User",
-            "classification": [ "suggested" ]
+            "classification": [ "class1", "class2" ]
           },
           "source": {
             "id": 1,
             "title": "StockTwits",
             "url": "http://stocktwits.com"
           },
-          "symbols": [ { "id": 17, "symbol": "JOY", "title": "Joy Global, Inc." } ]
+          "symbols": [ { "id": 1, "symbol": "SYM1", "title": "Symbol 1" }, { "id": 2, "symbol": "SYM2", "title": "Symbol 2" } ]
         } ]
-      }""".parseJson.convertTo[UserStreamResponse]
-
-    source.user.id shouldEqual 17
-    source.user.username shouldEqual "traderjoe"
-    source.user.name shouldEqual "Trader Joe"
-    source.user.avatarUrl shouldEqual "http://avatar"
-    source.user.avatarUrlSsl shouldEqual "https://avatar"
-    source.user.identity shouldEqual "User"
-    source.user.classification shouldEqual Seq("class1", "class2")
+      }
+     """.parseJson
   }
+
+  val testUser = Models.User(17, "traderjoe", "Trader Joe", "http://avatar", "https://avatar", "User", Seq("class1", "class2"))
+  val testSymbol1 = Models.Symbol(1, "SYM1", "Symbol 1")
+  val testSymbol2 = Models.Symbol(2, "SYM2", "Symbol 2")
+  val testMessage = Message(1, "hello", "2012-10-08 21:41:38 UTC", testUser, Source(1, "StockTwits", "http://stocktwits.com"), Seq(testSymbol1, testSymbol2))
+  val testCursor = Cursor(true, 49, Some(51))
 
 }
