@@ -102,7 +102,7 @@ class ModelsTest extends FunSuite with Matchers {
   val testUser = Models.User(17, "traderjoe", "Trader Joe", "http://avatar", "https://avatar", "User", Seq("class1", "class2"))
   val testSymbol1 = Models.Symbol(1, "SYM1", "Symbol 1")
   val testSymbol2 = Models.Symbol(2, "SYM2", "Symbol 2")
-  val testMessage = Message(1, "hello", "2012-10-08 21:41:38 UTC", testUser, Source(1, "StockTwits", "http://stocktwits.com"), Seq(testSymbol1, testSymbol2))
+  val testMessage = Message(1, "hello", "2012-10-08 21:41:38 UTC", testUser, Source(1, "StockTwits", "http://stocktwits.com"), Some(Seq(testSymbol1, testSymbol2)))
   val testCursor = Cursor(true, 49, Some(51))
 
 }
