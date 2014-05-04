@@ -76,6 +76,49 @@ class ModelsTest extends FunSuite with Matchers {
     assert(source.cursor.max == Some(51))
   }
 
+  test("map user stream to 'UserStreamResponse'") {
+    val source = """
+      {
+        "response": { "status": 200 },
+        "user": {
+          "id": 17,
+          "username": "traderjoe",
+          "name": "Trader Joe",
+          "avatar_url": "http://avatar",
+          "avatar_url_ssl": "https://avatar",
+          "identity": "User",
+          "classification": ["class1", "class2"]
+        },
+        "cursor": { "more": true, "since": 49, "max": 51 },
+        "messages": [ {
+          "id": 1,
+          "body": "hello",
+          "created_at": "2012-10-08 21:41:38 UTC",
+          "user": {
+            "id": 2,
+            "username": "mcescher",
+            "name": "M.C. Escher",
+            "avatar_url": "http://avatar",
+            "avatar_url_ssl": "https://avatar",
+            "identity": "User",
+            "classification": [ "suggested" ]
+          },
+          "source": {
+            "id": 1,
+            "title": "StockTwits",
+            "url": "http://stocktwits.com"
+          },
+          "symbols": [ { "id": 17, "symbol": "JOY", "title": "Joy Global, Inc." } ]
+        } ]
+      }""".parseJson.convertTo[UserStreamResponse]
+
+    source.user.id shouldEqual 17
+    source.user.username shouldEqual "traderjoe"
+    source.user.name shouldEqual "Trader Joe"
+    source.user.avatarUrl shouldEqual "http://avatar"
+    source.user.avatarUrlSsl shouldEqual "https://avatar"
+    source.user.identity shouldEqual "User"
+    source.user.classification shouldEqual Seq("class1", "class2")
   }
 
 }
