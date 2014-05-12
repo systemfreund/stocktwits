@@ -27,7 +27,7 @@ private class Stream[A <: StreamResponse : FromResponseUnmarshaller] private(val
     case Right(errorResp) => errorResp
   }
 
-  def get(uri: Uri)(since: Option[Int] = None): Future[A] = pipeline(Get(uri.since(since))) recover {
+  def get(uri: Uri)(since: Option[Int]): Future[A] = pipeline(Get(uri.since(since))) recover {
     case e: UnsuccessfulResponseException => throw ApiError(unmarshalErrorResponse(e.response))
   }
 
@@ -45,7 +45,7 @@ object Stream {
   type StreamFunc[A <: StreamResponse] = Option[Int] => Future[A]
 
   // Reminder:
-  // A : FromResponseUnmarshaller maps to (implicit evidence: FromResponseUnmarshaller[A])
+  // "A : B" maps to (implicit evidence: B[A])
 
   def apply[A <: StreamResponse : FromResponseUnmarshaller](entity: StreamEntity[A])
                                                            (implicit actorSys: ActorRefFactory,

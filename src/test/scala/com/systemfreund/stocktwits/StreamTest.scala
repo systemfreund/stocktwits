@@ -21,7 +21,7 @@ class StreamTest extends FunSuite with Matchers {
     val stream =
       Stream(
         Symbol("TEST"),
-        withResponse(""))
+        mockResponse(""))
 
     intercept[PipelineException] {
       Await.result(stream(None), 5 seconds)
@@ -32,7 +32,7 @@ class StreamTest extends FunSuite with Matchers {
     val stream =
       Stream(
         Symbol("TEST"),
-        withResponse("{}"))
+        mockResponse("{}"))
 
     intercept[PipelineException] {
       Await.result(stream(None), 5 seconds)
@@ -43,7 +43,7 @@ class StreamTest extends FunSuite with Matchers {
     val stream =
       Stream(
         Symbol("TEST"),
-        withResponse( """{ "response": {"status": 404}, "errors": [{"message": "notfound"}] }""", StatusCodes.NotFound))
+        mockResponse( """{ "response": {"status": 404}, "errors": [{"message": "notfound"}] }""", StatusCodes.NotFound))
 
     try {
       Await.result(stream(None), 5 seconds)
@@ -56,7 +56,7 @@ class StreamTest extends FunSuite with Matchers {
     val stream =
       Stream(
         Symbol("TEST"),
-        withResponse( """{ "response": {"status": 404} }""", StatusCodes.NotFound))
+        mockResponse( """{ "response": {"status": 404} }""", StatusCodes.NotFound))
 
     try {
       Await.result(stream(None), 5 seconds)
@@ -66,7 +66,7 @@ class StreamTest extends FunSuite with Matchers {
     }
   }
 
-  def withResponse(data: String, status: StatusCode = StatusCodes.OK): HttpRequest => Future[HttpResponse] = {
+  def mockResponse(data: String, status: StatusCode = StatusCodes.OK): HttpRequest => Future[HttpResponse] = {
     request => Future.successful(HttpResponse(status, HttpEntity(ContentTypes.`application/json`, data)))
   }
 
