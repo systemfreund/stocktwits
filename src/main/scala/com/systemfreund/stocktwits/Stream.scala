@@ -31,7 +31,7 @@ private class Stream[A <: StreamResponse : FromResponseUnmarshaller] private(val
     case Right(errorResp) => errorResp
   }
 
-  def get(uri: Uri)(params: RequestParameter[_]*): Future[A] = pipeline(Get(uri.withQuery(params : _*))) recover {
+  def get(uri: Uri)(params: RequestParameter[_]*): Future[A] = pipeline(Get(uri.withQuery(params: _*))) recover {
     case e: UnsuccessfulResponseException => throw ApiError(unmarshalErrorResponse(e.response))
   }
 
