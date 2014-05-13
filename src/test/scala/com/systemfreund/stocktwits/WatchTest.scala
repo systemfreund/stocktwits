@@ -4,6 +4,7 @@ import org.scalatest.FunSuite
 import akka.actor.ActorSystem
 import spray.httpx.SprayJsonSupport._
 import Models.JsonProtocol._
+import com.systemfreund.stocktwits.Streams._
 
 class WatchTest extends FunSuite {
 

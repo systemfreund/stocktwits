@@ -19,7 +19,7 @@ object Watch extends Logging {
 
       val timeout: Observable[AnyRef] = toScalaObservable(rx.Observable.timer(5, TimeUnit.SECONDS))
 
-      val obs = timeout.flatMap(_ => Observable.from(streamFunc(since)))
+      val obs = timeout.flatMap(_ => Observable.from(streamFunc()))
         .doOnNext(resp => since = Some(resp.cursor.since))
         .doOnCompleted(reschedule)
         .flatMap(resp => Observable.from(resp.messages.reverse))

@@ -2,6 +2,8 @@ package com.systemfreund.stocktwits
 
 import org.scalatest.{Matchers, FunSuite}
 import spray.http.Uri
+import com.systemfreund.stocktwits.Parameters.{Limit, Max, Since}
+import com.systemfreund.stocktwits.Streams._
 
 class UriTest extends FunSuite with Matchers {
 
@@ -14,27 +16,19 @@ class UriTest extends FunSuite with Matchers {
   }
 
   test("uri with 'since'") {
-    Uri("http://test").since(1234) shouldEqual Uri("http://test?since=1234")
-  }
-
-  test("uri with option 'since'") {
-    Uri("http://test").since(Some(1234)) shouldEqual Uri("http://test?since=1234")
-  }
-
-  test("uri with absent 'since'") {
-    Uri("http://test").since(None) shouldEqual Uri("http://test")
+    Uri("http://test").withQuery(Since(1234)) shouldEqual Uri("http://test?since=1234")
   }
 
   test("uri with 'max'") {
-    Uri("http://test").max(1234) shouldEqual Uri("http://test?max=1234")
+    Uri("http://test").withQuery(Max(1234)) shouldEqual Uri("http://test?max=1234")
   }
 
-  test("uri with option 'max'") {
-    Uri("http://test").max(Some(1234)) shouldEqual Uri("http://test?max=1234")
+  test("uri with 'limit'") {
+    Uri("http://test").withQuery(Limit(1234)) shouldEqual Uri("http://test?limit=1234")
   }
 
-  test("uri with absent 'max'") {
-    Uri("http://test").max(None) shouldEqual Uri("http://test")
+  test("uri with 'since', 'max' and 'limit'") {
+    Uri("http://test").withQuery(Since(1), Max(10), Limit(100)) shouldEqual Uri("http://test?since=1&max=10&limit=100")
   }
 
 }

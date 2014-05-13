@@ -12,37 +12,41 @@ import spray.httpx.SprayJsonSupport._
 import spray.httpx.UnsuccessfulResponseException
 import spray.httpx.unmarshalling.{FromResponseUnmarshaller, PimpedHttpResponse}
 import spray.http.Uri
+import com.systemfreund.stocktwits.Stream.StreamFunc
+import com.systemfreund.stocktwits.Parameters.RequestParameter
+import com.systemfreund.stocktwits.Streams.StreamEntity
 
 private class Stream[A <: StreamResponse : FromResponseUnmarshaller] private(val entity: StreamEntity[A],
-                                                                     val sendRecv: HttpRequest => Future[HttpResponse])
-                                                                    (implicit val dispatcher: ExecutionContext) {
+                                                                             val sendRecv: HttpRequest => Future[HttpResponse])
+                                                                            (implicit val dispatcher: ExecutionContext) {
 
-  val pipeline: HttpRequest => Future[A] = (encode(Gzip)
-    ~> sendRecv
-    ~> decode(Deflate)
-    ~> unmarshal[A])
+  val pipeline: HttpRequest => Future[A] = (
+    encode(Gzip)
+      ~> sendRecv
+      ~> decode(Deflate)
+      ~> unmarshal[A])
 
   def unmarshalErrorResponse(response: HttpResponse): ErrorResponse = response.as[ErrorResponse] match {
     case Left(error) => throw new RuntimeException(error.toString)
     case Right(errorResp) => errorResp
   }
 
-  def get(uri: Uri)(since: Option[Int]): Future[A] = pipeline(Get(uri.since(since))) recover {
+  def get(uri: Uri)(params: RequestParameter[_]*): Future[A] = pipeline(Get(uri.withQuery(params : _*))) recover {
     case e: UnsuccessfulResponseException => throw ApiError(unmarshalErrorResponse(e.response))
   }
 
-  def get: Option[Int] => Future[A] = entity match {
+  def get: StreamFunc[A] = entity match {
     case entity: StreamEntity[A] => get(entity.uri)
   }
 
 }
 
 object Stream {
-  implicit def noArgToNone[A <: StreamResponse](f: StreamFunc[A]): () => Future[A] = {
-    () => f(None)
-  }
+  //  implicit def noArgToNone[A <: StreamResponse](f: StreamFunc[A]): () => Future[A] = {
+  //    () => f(Parameters())
+  //  }
 
-  type StreamFunc[A <: StreamResponse] = Option[Int] => Future[A]
+  type StreamFunc[A <: StreamResponse] = (RequestParameter[_] *) => Future[A]
 
   // Reminder:
   // "A : B" maps to (implicit evidence: B[A])
