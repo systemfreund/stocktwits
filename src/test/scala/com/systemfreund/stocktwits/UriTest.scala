@@ -27,8 +27,16 @@ class UriTest extends FunSuite with Matchers {
     Uri("http://test").withQuery(Limit(1234)) shouldEqual Uri("http://test?limit=1234")
   }
 
+  test("uri with 'since' and 'since'") {
+    Uri("http://test").withQuery(Since(1), Since(1)) shouldEqual Uri("http://test?since=1&since=1")
+  }
+
   test("uri with 'since', 'max' and 'limit'") {
     Uri("http://test").withQuery(Since(1), Max(10), Limit(100)) shouldEqual Uri("http://test?since=1&max=10&limit=100")
+  }
+
+  test("uri with 'since', 'max' and 'since'") {
+    Uri("http://test").withQuery(Since(1), Max(10), Since(100)) shouldEqual Uri("http://test?since=1&max=10&since=100")
   }
 
 }

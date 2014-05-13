@@ -16,10 +16,11 @@ object Parameters {
   /** Limit results count to the specified amount. */
   case class Limit(count: Int) extends RequestParameter("limit", count)
 
-  private def toQuery(params: RequestParameter[_]*) = Query(params.map(p => (p.key, p.value.toString)).toMap)
+  private def toTuples(params: RequestParameter[_]*): Seq[(String, String)] =
+    params.map(p => (p.key, p.value.toString))
 
   implicit class RequestParameterSupport(val uri: Uri) {
-    def withQuery(params: RequestParameter[_]*): Uri = uri.withQuery(toQuery(params : _*))
+    def withQuery(params: RequestParameter[_]*): Uri = uri.withQuery(toTuples(params: _*): _*)
   }
 
 }
