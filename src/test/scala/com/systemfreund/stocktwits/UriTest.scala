@@ -2,8 +2,14 @@ package com.systemfreund.stocktwits
 
 import org.scalatest.{Matchers, FunSuite}
 import spray.http.Uri
-import com.systemfreund.stocktwits.Parameters.{Limit, Max, Since}
+import com.systemfreund.stocktwits.Parameters._
 import com.systemfreund.stocktwits.Streams._
+import com.systemfreund.stocktwits.Parameters.Limit
+import com.systemfreund.stocktwits.Parameters.Max
+import com.systemfreund.stocktwits.Streams.User
+import com.systemfreund.stocktwits.Parameters.Filter
+import com.systemfreund.stocktwits.Streams.Symbol
+import com.systemfreund.stocktwits.Parameters.Since
 
 class UriTest extends FunSuite with Matchers {
 
@@ -37,6 +43,22 @@ class UriTest extends FunSuite with Matchers {
 
   test("uri with 'since', 'max' and 'since'") {
     Uri("http://test").withQuery(Since(1), Max(10), Since(100)) shouldEqual Uri("http://test?since=1&max=10&since=100")
+  }
+
+  test("uri with 'filter'") {
+    Uri("http://test").withQuery(Filter(Top)) shouldEqual Uri("http://test?filter=top")
+  }
+
+  test("uri with 'charts'") {
+    Uri("http://test").withQuery(Filter(Charts)) shouldEqual Uri("http://test?filter=charts")
+  }
+
+  test("uri with 'links") {
+    Uri("http://test").withQuery(Filter(Links)) shouldEqual Uri("http://test?filter=links")
+  }
+
+  test("uri with 'videos") {
+    Uri("http://test").withQuery(Filter(Videos)) shouldEqual Uri("http://test?filter=videos")
   }
 
 }

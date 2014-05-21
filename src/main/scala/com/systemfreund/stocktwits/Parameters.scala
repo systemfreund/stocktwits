@@ -16,6 +16,14 @@ object Parameters {
   /** Limit results count to the specified amount. */
   case class Limit(count: Int) extends RequestParameter("limit", count)
 
+  case class Filter(id: FilterType) extends RequestParameter("filter", id.value)
+
+  sealed abstract class FilterType(val value: String)
+  case object Top extends FilterType("top")
+  case object Links extends FilterType("links")
+  case object Charts extends FilterType("charts")
+  case object Videos extends FilterType("videos")
+
   private def toTuples(params: RequestParameter[_]*): Seq[(String, String)] =
     params.map(p => (p.key, p.value.toString))
 
