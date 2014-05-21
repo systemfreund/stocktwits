@@ -9,6 +9,7 @@ import spray.httpx.SprayJsonSupport._
 import Models.JsonProtocol._
 import Stream._
 import Streams._
+import com.systemfreund.stocktwits.Parameters.Limit
 
 class IntegrationTest extends FunSuite with Matchers {
 
@@ -22,6 +23,14 @@ class IntegrationTest extends FunSuite with Matchers {
     val result = Await.result(future, 5 seconds)
 
     result.symbol.ticker shouldEqual "GOOG"
+  }
+
+  test("get 'streams/symbol' with limit") {
+    val stream = Stream(Symbol("GOOG"))
+    val future = stream(Limit(2))
+    val result = Await.result(future, 5 seconds)
+
+    result.messages should have size 2
   }
 
   test("unknown 'streams/symbol'") {
@@ -42,6 +51,14 @@ class IntegrationTest extends FunSuite with Matchers {
     val result = Await.result(future, 5 seconds)
 
     result.user.username shouldEqual "dschn"
+  }
+
+  test("get 'streams/user' with limit") {
+    val stream = Stream(User("dschn"))
+    val future = stream(Limit(1))
+    val result = Await.result(future, 5 seconds)
+
+    result.messages should have size 1
   }
 
   test("unknown 'streams/user'") {
