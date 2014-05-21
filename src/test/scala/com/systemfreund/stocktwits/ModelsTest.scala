@@ -42,7 +42,7 @@ class ModelsTest extends FunSuite with Matchers {
 
   test("map symbol stream to 'SymbolStreamResponse'") {
     val source = testResponseTemplate("symbol",
-      """{ "id": 1, "symbol": "SYM1", "title": "Symbol 1" }""").convertTo[SymbolStreamResponse]
+      """{ "id": 1, "symbol": "SYM1", "title": "Symbol 1" }""").convertTo[SymbolFeed]
 
     source.symbol shouldEqual testSymbol1
     source.cursor shouldEqual testCursor
@@ -53,7 +53,7 @@ class ModelsTest extends FunSuite with Matchers {
     val source = testResponseTemplate("user",
       """{ "id": 17, "username": "traderjoe", "name": "Trader Joe",
            "avatar_url": "http://avatar", "avatar_url_ssl": "https://avatar",
-           "identity": "User", "classification": ["class1", "class2"] }""").convertTo[UserStreamResponse]
+           "identity": "User", "classification": ["class1", "class2"] }""").convertTo[UserFeed]
 
     source.user shouldEqual testUser
     source.cursor shouldEqual testCursor

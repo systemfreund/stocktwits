@@ -73,4 +73,12 @@ class IntegrationTest extends FunSuite with Matchers {
     }
   }
 
+  test("get 'streams/investor_relations'") {
+    val stream = Stream(InvestorRelations)
+    val future = stream()
+    val result = Await.result(future, 5 seconds)
+
+    result.messages.size should be > 0
+  }
+
 }
